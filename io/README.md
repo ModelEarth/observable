@@ -49,3 +49,6 @@ Or if the folder resides in your existing webroot, view it at:
 
 You can edit the README.md and add subfolders with files here in the "io" folder:
 [localhost:8887/observable/io](http://localhost:8887/observable/io/)
+
+
+If you are self hosting on GitHub, turn on Github Pages.

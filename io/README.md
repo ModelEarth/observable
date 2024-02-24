@@ -1,6 +1,16 @@
 # Observable Input-Output
 
-This repository was created using the [Observable Install Steps](
+Open a terminal in the "observable" repo and build a static site for self hosting:
+
+	yarn build
+
+You can edit the README.md and add subfolders with files here in the "io" folder:
+[localhost:8887/observable/io](http://localhost:8887/observable/io/)
+
+## Notes on Initial Install
+
+You won't need to re-run the install steps on the current repo.
+These are a summary of the [Observable Install Steps](
 https://observablehq.com/framework/getting-started#3.-publish)
 
 In the webroot, we ran yarn because it's faster and more secure than: npm init @observablehq

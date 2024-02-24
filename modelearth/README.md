@@ -40,9 +40,11 @@ And build a static site for self hosting:
 
 	yarn build
 
+Rename the "dist" folder to "io".  This allows us to avoid merge conflicts if we were to remove /dist from the .gitignore file.
+
 To preview your built site locally, you can use a local static HTTP server such as [http-server](https://github.com/http-party/http-server):
 
-	npx http-server dist
+	npx http-server io
 
 Or if the folder resides in your existing webroot, view it at:
 [localhost:8887/observable/dist](http://localhost:8887/observable/dist/)
@@ -50,5 +52,10 @@ Or if the folder resides in your existing webroot, view it at:
 You can edit the README.md and add subfolders with files here in the "io" folder:
 [localhost:8887/observable/io](http://localhost:8887/observable/io/)
 
+Error: no such file or directory, open 'docs/example-dashboard.md'
 
-If you are self hosting on GitHub, turn on Github Pages.
+To publish (Haven't done this yet. Using GitHub Desktop instead.):
+
+	yarn deploy
+
+If you are hosting on GitHub, turn on Github Pages.

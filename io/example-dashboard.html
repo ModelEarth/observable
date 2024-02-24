@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>Observable</title>
+<title>Example dashboard | Observable</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="style" href="./_observablehq/theme-air,near-midnight.css">
+<link rel="preload" as="style" href="./_observablehq/theme-air,near-midnight,alt,wide.css">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Source+Serif+Pro:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&amp;display=swap" crossorigin>
-<link rel="stylesheet" type="text/css" href="./_observablehq/theme-air,near-midnight.css">
+<link rel="stylesheet" type="text/css" href="./_observablehq/theme-air,near-midnight,alt,wide.css">
 <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css2?family=Source+Serif+Pro:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&amp;display=swap" crossorigin>
 <link rel="modulepreload" href="./_observablehq/client.js">
 <link rel="modulepreload" href="./_observablehq/runtime.js">
@@ -52,37 +52,92 @@
 
 import {define} from "./_observablehq/client.js";
 
-define({id: "7935742a", inline: true, inputs: ["resize","Plot","aapl","display"], body: async (resize,Plot,aapl,display) => {
+define({id: "7a66a2dd", inputs: ["FileAttachment"], outputs: ["launches"], files: [{"name":"./data/launches.csv","mimeType":"text/csv","path":"./_file/data/launches.csv"}], body: (FileAttachment) => {
+const launches = FileAttachment("data/launches.csv").csv({typed: true});
+return {launches};
+}});
+
+define({id: "fdf7eadc", inputs: ["Plot","d3","launches"], outputs: ["color"], body: (Plot,d3,launches) => {
+const color = Plot.scale({
+  color: {
+    type: "categorical",
+    domain: d3.groupSort(launches, (D) => -D.length, (d) => d.state).filter((d) => d !== "Other"),
+    unknown: "var(--theme-foreground-muted)"
+  }
+});
+return {color};
+}});
+
+define({id: "92cac4f1", inline: true, inputs: ["launches","display"], body: async (launches,display) => {
 display(await(
-    resize((width) => Plot.plot({
-      title: "Your awesomeness over time 🚀",
-      subtitle: "Up and to the right!",
-      width,
-      y: {grid: true, label: "Awesomeness"},
-      marks: [
-        Plot.ruleY([0]),
-        Plot.lineY(aapl, {x: "Date", y: "Close", tip: true})
-      ]
-    }))
-  
+launches.filter((d) => d.stateId === "US").length.toLocaleString("en-US")
 ))
 }});
 
-define({id: "699041c1", inline: true, inputs: ["resize","Plot","penguins","display"], body: async (resize,Plot,penguins,display) => {
+define({id: "f84e9749", inline: true, inputs: ["launches","display"], body: async (launches,display) => {
 display(await(
-    resize((width) => Plot.plot({
-      title: "How big are penguins, anyway? 🐧",
-      width,
-      grid: true,
-      x: {label: "Body mass (g)"},
-      y: {label: "Flipper length (mm)"},
-      color: {legend: true},
-      marks: [
-        Plot.linearRegressionY(penguins, {x: "body_mass_g", y: "flipper_length_mm", stroke: "species"}),
-        Plot.dot(penguins, {x: "body_mass_g", y: "flipper_length_mm", stroke: "species", tip: true})
-      ]
-    }))
-  
+launches.filter((d) => d.stateId === "SU" || d.stateId === "RU").length.toLocaleString("en-US")
+))
+}});
+
+define({id: "3f89d55f", inline: true, inputs: ["launches","display"], body: async (launches,display) => {
+display(await(
+launches.filter((d) => d.stateId === "CN").length.toLocaleString("en-US")
+))
+}});
+
+define({id: "d55bddad", inline: true, inputs: ["launches","display"], body: async (launches,display) => {
+display(await(
+launches.filter((d) => d.stateId !== "US" && d.stateId !== "SU" && d.stateId !== "RU" && d.stateId !== "CN").length.toLocaleString("en-US")
+))
+}});
+
+define({id: "a6446d56", inputs: ["Plot","color"], outputs: ["launchTimeline"], body: (Plot,color) => {
+function launchTimeline(data, {width} = {}) {
+  return Plot.plot({
+    title: "Launches over the years",
+    width,
+    height: 300,
+    y: {grid: true, label: "Launches"},
+    color: {...color, legend: true},
+    marks: [
+      Plot.rectY(data, Plot.binX({y: "count"}, {x: "date", fill: "state", interval: "year", tip: true})),
+      Plot.ruleY([0])
+    ]
+  });
+}
+return {launchTimeline};
+}});
+
+define({id: "da415336", inline: true, inputs: ["resize","launchTimeline","launches","display"], body: async (resize,launchTimeline,launches,display) => {
+display(await(
+resize((width) => launchTimeline(launches, {width}))
+))
+}});
+
+define({id: "bdc917ac", inputs: ["Plot","color"], outputs: ["vehicleChart"], body: (Plot,color) => {
+function vehicleChart(data, {width}) {
+  return Plot.plot({
+    title: "Popular launch vehicles",
+    width,
+    height: 300,
+    marginTop: 0,
+    marginLeft: 50,
+    x: {grid: true, label: "Launches"},
+    y: {label: null},
+    color: {...color, legend: true},
+    marks: [
+      Plot.rectX(data, Plot.groupY({x: "count"}, {y: "family", fill: "state", tip: true, sort: {y: "-x"}})),
+      Plot.ruleX([0])
+    ]
+  });
+}
+return {vehicleChart};
+}});
+
+define({id: "87987196", inline: true, inputs: ["resize","vehicleChart","launches","display"], body: async (resize,vehicleChart,launches,display) => {
+display(await(
+resize((width) => vehicleChart(launches, {width}))
 ))
 }});
 
@@ -92,95 +147,58 @@ display(await(
 <nav id="observablehq-sidebar">
   <ol>
     <label id="observablehq-sidebar-close" for="observablehq-sidebar-toggle"></label>
-    <li class="observablehq-link observablehq-link-active"><a href="./">Observable</a></li>
+    <li class="observablehq-link"><a href="./">Observable</a></li>
   </ol>
   <ol>
-    <li class="observablehq-link"><a href="./example-dashboard">Example dashboard</a></li>
+    <li class="observablehq-link observablehq-link-active"><a href="./example-dashboard">Example dashboard</a></li>
     <li class="observablehq-link"><a href="./example-report">Example report</a></li>
   </ol>
 </nav>
 <script>{Object.assign(document.createElement("a"),{href:""}).password&&location.replace(location.href);const e=document.querySelector("#observablehq-sidebar"),o=document.querySelector("#observablehq-sidebar-toggle"),r=sessionStorage.getItem("observablehq-sidebar");r?o.checked=r==="true":o.indeterminate=!0;for(const t of document.querySelectorAll("#observablehq-sidebar summary")){const s=t.parentElement;switch(sessionStorage.getItem(`observablehq-sidebar:${t.textContent}`)){case"true":s.open=!0;break;case"false":s.classList.contains("observablehq-section-active")||(s.open=!1);break}}addEventListener("beforeunload",()=>sessionStorage.setItem("observablehq-sidebar-scrolly",`${e.scrollTop}`));const a=sessionStorage.getItem("observablehq-sidebar-scrolly");a!=null&&(e.style.cssText="overflow: hidden;",e.scrollTop=+a,e.style.cssText="");}</script>
 <div id="observablehq-center">
 <main id="observablehq-main" class="observablehq">
-<style>
-
-.hero {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  font-family: var(--sans-serif);
-  margin: 4rem 0 8rem;
-  text-wrap: balance;
-  text-align: center;
-}
-
-.hero h1 {
-  margin: 2rem 0;
-  max-width: none;
-  font-size: 14vw;
-  font-weight: 900;
-  line-height: 1;
-  background: linear-gradient(30deg, var(--theme-foreground-focus), currentColor);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.hero h2 {
-  margin: 0;
-  max-width: 34em;
-  font-size: 20px;
-  font-style: initial;
-  font-weight: 500;
-  line-height: 1.5;
-  color: var(--theme-foreground-muted);
-}
-
-@media (min-width: 640px) {
-  .hero h1 {
-    font-size: 90px;
-  }
-}
-
-</style>
-<div class="hero">
-  <h1>Hello, Observable Framework</h1>
-  <h2>Welcome to your new project! Edit&#160;<code style="font-size: 90%;">docs/index.md</code> to change this page.</h2>
-  <a href="https://observablehq.com/framework/getting-started" target="_blank">Get started<span style="display: inline-block; margin-left: 0.25rem;">↗︎</span></a>
-</div>
-<div class="grid grid-cols-2" style="grid-auto-rows: 504px;">
-  <div class="card"><span id="cell-7935742a" class="observablehq--loading"></span></div>
-  <div class="card"><span id="cell-699041c1" class="observablehq--loading"></span></div>
-</div>
-<hr>
-<h2 id="next-steps" tabindex="-1"><a class="observablehq-header-anchor" href="#next-steps">Next steps</a></h2>
-<p>Here are some ideas of things you could try…</p>
-<div class="grid grid-cols-4">
+<h1 id="rocket-launches-%F0%9F%9A%80" tabindex="-1"><a class="observablehq-header-anchor" href="#rocket-launches-%F0%9F%9A%80">Rocket launches 🚀</a></h1>
+<span><!-- Load and transform the data -->
+</span><div id="cell-7a66a2dd" class="observablehq observablehq--block"></div>
+<span><!-- A shared color scale for consistency, sorted by the number of launches -->
+</span><div id="cell-fdf7eadc" class="observablehq observablehq--block"></div>
+<span><!-- Cards with big numbers -->
+</span><div class="grid grid-cols-4">
   <div class="card">
-    Chart your own data using <a href="https://observablehq.com/framework/lib/plot"><code>Plot</code></a> and <a href="https://observablehq.com/framework/javascript/files"><code>FileAttachment</code></a>. Make it responsive using <a href="https://observablehq.com/framework/javascript/display#responsive-display"><code>resize</code></a>.
+    <h2>United States 🇺🇸</h2>
+    <span class="big"><span id="cell-92cac4f1" class="observablehq--loading"></span></span>
   </div>
   <div class="card">
-    Create a <a href="https://observablehq.com/framework/routing">new page</a> by adding a Markdown file (<code>whatever.md</code>) to the <code>docs</code> folder.
+    <h2>Russia 🇷🇺 <span class="muted">/ Soviet Union</span></h2>
+    <span class="big"><span id="cell-f84e9749" class="observablehq--loading"></span></span>
   </div>
   <div class="card">
-    Add a drop-down menu using <a href="https://observablehq.com/framework/javascript/inputs"><code>Inputs.select</code></a> and use it to filter the data shown in a chart.
+    <h2>China 🇨🇳</h2>
+    <span class="big"><span id="cell-3f89d55f" class="observablehq--loading"></span></span>
   </div>
   <div class="card">
-    Write a <a href="https://observablehq.com/framework/loaders">data loader</a> that queries a local database or API, generating a data snapshot on build.
-  </div>
-  <div class="card">
-    Import a <a href="https://observablehq.com/framework/javascript/imports">recommended library</a> from npm, such as <a href="https://observablehq.com/framework/lib/leaflet">Leaflet</a>, <a href="https://observablehq.com/framework/lib/dot">GraphViz</a>, <a href="https://observablehq.com/framework/lib/tex">TeX</a>, or <a href="https://observablehq.com/framework/lib/duckdb">DuckDB</a>.
-  </div>
-  <div class="card">
-    Ask for help, or share your work or ideas, on the <a href="https://talk.observablehq.com/">Observable forum</a>.
-  </div>
-  <div class="card">
-    Visit <a href="https://github.com/observablehq/framework">Framework on GitHub</a> and give us a star. Or file an issue if you’ve found a bug!
+    <h2>Other</h2>
+    <span class="big"><span id="cell-d55bddad" class="observablehq--loading"></span></span>
   </div>
 </div>
+<span><!-- Plot of launch history -->
+</span><div id="cell-a6446d56" class="observablehq observablehq--block"></div>
+<div class="grid grid-cols-1">
+  <div class="card">
+    <span id="cell-da415336" class="observablehq--loading"></span>
+  </div>
+</div>
+<span><!-- Plot of launch vehicles -->
+</span><div id="cell-bdc917ac" class="observablehq observablehq--block"></div>
+<div class="grid grid-cols-1">
+  <div class="card">
+    <span id="cell-87987196" class="observablehq--loading"></span>
+  </div>
+</div>
+<p>Data: Jonathan C. McDowell, <a href="https://planet4589.org/space/gcat">General Catalog of Artificial Space Objects</a></p>
 </main>
 <footer id="observablehq-footer">
-<nav><a rel="next" href="./example-dashboard"><span>Example dashboard</span></a></nav>
+<nav><a rel="prev" href="./"><span>Observable</span></a><a rel="next" href="./example-report"><span>Example report</span></a></nav>
 <div>Built with <a href="https://observablehq.com/" target="_blank">Observable</a> on <a title="2024-02-24T10:25:22">Feb 24, 2024</a>.</div>
 </footer>
 </div>

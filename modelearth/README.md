@@ -55,7 +55,16 @@ You can edit the README.md and add subfolders with files here in the "io" folder
 Error: no such file or directory, open 'docs/example-dashboard.md'
 
 To publish (Haven't done this yet. Using GitHub Desktop instead.):
+How do we toggle between self-hosting and deploying to Observable?
 
 	yarn deploy
 
 If you are hosting on GitHub, turn on Github Pages.
+
+How do we run either of the following?
+These are at the bottom here: https://model.earth/observable/
+
+	yarn observable
+	yarn observable help
+
+
